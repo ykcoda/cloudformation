@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: S3 and EC2 instance
+
+Resources: 
+  FirstS3Bucket:
+    Type: AWS::S3::Bucket 
+    Properties:
+      BucketName: ykcoda-121233221bucket
+
+  FirstEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0953476d60561c955
