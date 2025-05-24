@@ -63,6 +63,36 @@ Resources:
       VPCZoneIdentifier: 
         - subnet-0b2cd7c034c205be6
         - subnet-024ea0ea07964e9d9
+      TargetGroupARNs: 
+        - !Ref WebAppLoadBalancerTargetGroup
       #LoadBalancerNames: 
-        #- String
+        #- !Ref WebAppLoadBalancer
+
+  WebAppLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Name: WebApplicationLoadBalancer
+      Subnets: 
+        - subnet-0b2cd7c034c205be6
+        - subnet-024ea0ea07964e9d9
+      Type: application
+
+  WebAppLoadBalancerListner:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions: 
+        - TargetGroupArn: !Ref WebAppLoadBalancerTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref WebAppLoadBalancer
+      Port: 80
+      Protocol: HTTP
+   
+  WebAppLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      VpcId: vpc-0a61af4a16016581f
+
 
