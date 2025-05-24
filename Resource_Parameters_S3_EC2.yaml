@@ -1,0 +1,38 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: S3 and EC2 instance
+
+Parameters:
+  AMIIDParameter:
+    Description: AMI ID
+    Type: String
+    Default: ami-0953476d60561c955
+    AllowedValues:
+      - ami-0953476d60561c955
+      - ami-0fa71268a899c2733
+    
+  InstanceTypeParameter:
+    Description: Instance Type
+    Type: String
+    Default: t2.micro 
+    AllowedValues:
+      - t2.micro
+      - t2.nano
+      - m1.large
+
+  BucketNameParameter:
+    Description: Bucket Name
+    Type: String
+    
+
+Resources: 
+  FirstEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypeParameter
+      ImageId: !Ref AMIIDParameter
+
+  FirstS3Bucket:
+    Type: AWS::S3::Bucket 
+    Properties:
+      BucketName: !Ref BucketNameParameter
