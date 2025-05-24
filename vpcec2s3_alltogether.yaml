@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create VPC, Subnet, EC2 and S3 with Parameters and Metadata
+
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+      - 
+        Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - ProdVPCCidr
+          - ProdSubnetACidr
+      - 
+        Label: 
+          default: "Compute Configuration"
+        Parameters: 
+          - EC2ImageID
+          - EC2InstanceType
+
+      - 
+        Label: 
+          default: "Storage Configuration"
+        Parameters: 
+          - S3BucketName
+    ParameterLabels: 
+      ProdVPCCidr: 
+        default: "Prod VPC CIDR"
+      ProdSubnetACidr:
+        default: "Prod Subnet A CIDR"
+      EC2ImageID:
+        default: "Select EC2 AMI-ID"
+      EC2InstanceType:
+        default: "Select EC2 Instance Type"
+      S3BucketName: 
+        default: "Enter S3 Bucket Name"
+
+ 
+Parameters:
+  ProdVPCCidr:
+    Description: eg. 10.0.0.0/16, 10.1.0.0/16 etc...
+    Type: String
+  
+  ProdSubnetACidr:
+    Description: eg. 10.0.1.0/24, 10.1.1.0/24 etc...
+    Type: String
+
+  EC2ImageID:
+    Type: String
+    Default: ami-0953476d60561c955
+    AllowedValues:
+      - ami-0953476d60561c955
+      - ami-0e58b56aa4d64231b
+
+  EC2InstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.nano
+
+  S3BucketName:
+    Type: String
+
+
+
+Resources: 
+  ProductionVPC:  
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref ProdVPCCidr
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      Tags: 
+        - Key: Name
+          Value: Production VPC
+
+  ProdSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: !Ref ProdSubnetACidr
+      MapPublicIpOnLaunch: True
+      Tags: 
+        - Key: Name
+          Value: Production Subnet A
+      VpcId: !Ref ProductionVPC
+
+  EC2Server:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref EC2ImageID
+      InstanceType: !Ref EC2InstanceType
+      SubnetId: !Ref ProdSubnetA
+      Tags: 
+        - Key: Name
+          Value: EC2Server
+
+  S3Container:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      Tags: 
+        - Key: Name
+          Value: S3Container
