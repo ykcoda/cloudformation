@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template creates the Auto Scaling Group
+
+#Metadata: 
+
+
+
+Parameters:
+  LTImageID:
+    Type: String
+    Default: ami-0953476d60561c955
+    AllowedValues:
+      - ami-0953476d60561c955
+      - ami-0e58b56aa4d64231b
+  
+  LTInstanceType:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - m1.small
+      - m1.large
+
+
+
+Resources: 
+  WebAppLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: WebAppLaunchTemplate
+      LaunchTemplateData:
+        ImageId: !Ref LTImageID
+        InstanceType: !Ref LTInstanceType
+        UserData:
+          Fn::Base64: 
+            !Sub |
+              #!/bin/bash
+              yum update -y
+              yum install httpd -y
+              systemctl start httpd 
+              systemctl enable httpd 
+              echo Hello from ykcoda.com CloudFormation Test > /var/www/html/index.html
+
+  WebAppAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: WebServerAutoScalingGroup
+      AvailabilityZones: 
+        - us-east-1a
+        - us-east-1b
+      DesiredCapacity: 2
+      LaunchTemplate: 
+        LaunchTemplateId: !GetAtt WebAppLaunchTemplate.LaunchTemplateId
+        Version: !GetAtt WebAppLaunchTemplate.LatestVersionNumber 
+      MaxSize: 2
+      MinSize: 1
+      VPCZoneIdentifier: 
+        - subnet-0b2cd7c034c205be6
+        - subnet-024ea0ea07964e9d9
+      #LoadBalancerNames: 
+        #- String
+    
