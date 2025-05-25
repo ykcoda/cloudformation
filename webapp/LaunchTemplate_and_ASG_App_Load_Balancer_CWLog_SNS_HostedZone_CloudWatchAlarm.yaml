@@ -162,6 +162,26 @@ Resources:
           ]
         }
 
+  #Cloud Watch Alarm
+  WebAppCloudWatchAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions: 
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:SNSTopic
+      AlarmDescription: This alarm is triggered when EC2 reaches CPU threshold
+      AlarmName: ykcodaAlarm
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      DatapointsToAlarm: 1
+      Dimensions: 
+        - Name : ASG
+          Value: !Ref WebAppAutoScalingGroup
+      EvaluationPeriods: 1
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Period: 300
+      Statistic: Maximum
+      Threshold: 2
+      TreatMissingData: breaching
   
 
 
