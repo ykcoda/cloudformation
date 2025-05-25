@@ -1,0 +1,299 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Cloudformation Landing Zone Setup (VPC Subnet InternetGateway NatGateway etc...)
+
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+      - 
+        Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VPCCIDR
+      - 
+        Label: 
+          default: "Tags"
+        Parameters: 
+          - Environment
+          - ProjectName
+          - ProjectID
+
+
+Parameters:
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedValues:
+      - 10.0.0.0/16 
+      - 10.0.0.0/24
+    Description : Select the value for VPC CIDR
+
+  Environment: 
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Prod
+    Description: Select the Environment type
+
+  ProjectName: 
+    Type: String
+    Description: Enter the name of the Project
+
+  ProjectID: 
+    Type: String
+    Description: Enter the ID of the Project
+
+
+Resources: 
+  #VPC 
+  VPC01:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: VPC01
+
+  #Subnets 
+  #Public Subnet 1
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.0.0/24
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: PublicSubnet1
+      VpcId: !Ref VPC01
+  
+  #Public Subnet 2
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.1.0/24
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: PublicSubnet2 
+      VpcId: !Ref VPC01
+
+  #Public Subnet 3
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.0.2.0/24
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: PublicSubent3 
+      VpcId: !Ref VPC01
+
+  #Private Subnet 1
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1a
+      CidrBlock: 10.0.3.0/24
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: PrivateSubnet1
+      VpcId: !Ref VPC01
+  
+  #Private Subnet 2
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1b
+      CidrBlock: 10.0.4.0/24
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: PrivateSubnet2 
+      VpcId: !Ref VPC01
+
+  #Private Subnet 3
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: us-east-1c
+      CidrBlock: 10.0.5.0/24
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: PrivateSubnet3 
+      VpcId: !Ref VPC01
+  
+  #Internet Gateway
+  InternetGatway01:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: InternetGateway01
+
+  #Internet Gateway Attachment
+  InternetGatewayVPCAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGatway01
+      VpcId: !Ref VPC01
+
+
+  #Route Tables
+  #Public Route Table
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: PublicRouteTable
+      VpcId: !Ref VPC01
+
+  #Public Routes
+  PublicRoutes:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayVPCAttachment
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGatway01
+      RouteTableId: !Ref PublicRouteTable
+
+  #Public Subnet Route Association
+  #Route Assocaition for Public Subent 1
+  PublicSubnet1RouteAssocaition:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  #Route Assocaition for Public Subent 2
+  PublicSubnet2RouteAssocaition:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+  
+  #Route Assocaition for Public Subent 3
+  PublicSubnet3RouteAssocaition:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+
+  #Security Group
+  SecurityGroup1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group 1
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: SecurityGroup1
+      VpcId: !Ref VPC01
+
+  #NACL
+  NACL1:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Name
+          Value: NACL1
+      VpcId: !Ref VPC01
+
+  NACL1Entry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: False
+      NetworkAclId: !Ref NACL1
+      #PortRange: 6
+      Protocol: -1
+      RuleAction: allow 
+      RuleNumber: 100
+
+  NACL1Exit:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: True
+      NetworkAclId: !Ref NACL1
+      #PortRange: 6
+      Protocol: -1
+      RuleAction: allow 
+      RuleNumber: 200
