@@ -3,9 +3,8 @@ Description: This template creates the Auto Scaling Group
 
 #Metadata: 
 
-
-
 Parameters:
+  #EC2 ImageID
   LTImageID:
     Type: String
     Default: ami-0953476d60561c955
@@ -13,6 +12,7 @@ Parameters:
       - ami-0953476d60561c955
       - ami-0e58b56aa4d64231b
   
+  #EC2 Instance Type
   LTInstanceType:
     Type: String
     Default: t2.micro
@@ -23,7 +23,8 @@ Parameters:
 
 
 
-Resources: 
+Resources:
+  #Web App Launch Template
   WebAppLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
@@ -46,7 +47,7 @@ Resources:
               - Key: Name
                 Value: Web App EC2 Instance
 
-
+  #Web App Auto Scaling Group
   WebAppAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -65,9 +66,9 @@ Resources:
         - subnet-024ea0ea07964e9d9
       TargetGroupARNs: 
         - !Ref WebAppLoadBalancerTargetGroup
-      #LoadBalancerNames: 
-        #- !Ref WebAppLoadBalancer
+      
 
+  #Application Load Balancer 
   WebAppLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -78,6 +79,7 @@ Resources:
         - subnet-024ea0ea07964e9d9
       Type: application
 
+  #Load Balancer Listner
   WebAppLoadBalancerListner:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -87,7 +89,8 @@ Resources:
       LoadBalancerArn: !Ref WebAppLoadBalancer
       Port: 80
       Protocol: HTTP
-   
+
+  #Load Balancer Target Group 
   WebAppLoadBalancerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -95,4 +98,66 @@ Resources:
       Protocol: HTTP
       VpcId: vpc-0a61af4a16016581f
 
+
+  #CloudWatch Log Group
+  HostedZoneCloudWatcLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/route53/webapp
+      RetentionInDays: 1
+      
+  #Simple Notification Service (SNS)
+  #SNS Topic
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: Alerts
+
+  #SNS Subscription
+  SNSSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: yawkyereh@outlook.com
+      Protocol: email
+      TopicArn: !Ref SNSTopic
+
+
+  #Route 53 Hosted Zone
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: ykcoda.com
+      QueryLoggingConfig: 
+        CloudWatchLogsLogGroupArn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/route53/webapp
+
+
+  #Resource Required ROUTE53 Record Set
+  ResourceRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: Z0434689S4P80WQ4TAF6
+      Name: blog.ykcoda.com
+      ResourceRecords: 
+        - !GetAtt WebAppLoadBalancer.DNSName
+      TTL: '900'
+      Type: CNAME
+
+  LogPolicy:
+    Type: AWS::Logs::ResourcePolicy
+    Properties:
+      PolicyName: MyLogPolicy
+      PolicyDocument: |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "route53.amazonaws.com"
+              },
+              "Action": "*",
+              "Resource": "*"
+            }
+          ]
+        }
 
