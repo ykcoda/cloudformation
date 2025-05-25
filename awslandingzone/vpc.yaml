@@ -16,7 +16,7 @@ Metadata:
           - Environment
           - ProjectName
           - ProjectID
-          - ResourceName
+         
 
 
 
@@ -45,11 +45,6 @@ Parameters:
     Type: String
     Description: Enter the ID of the Project
 
-  ResourceName: 
-    Type: String
-    Description: Enter the name of the Resource
-
-
 
 Resources: 
   #VPC 
@@ -66,5 +61,5 @@ Resources:
           Value: !Ref ProjectName
         - Key: Project ID
           Value: !Ref ProjectID
-        - Key: Resource Name
-          Value: !Ref ResourceName 
+        - Key: Name
+          Value: VPC01
