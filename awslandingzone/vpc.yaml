@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Cloudformation Landing Zone Setup (VPC Subnet InternetGateway NatGateway etc...)
+
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+      - 
+        Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VPCCIDR
+      - 
+        Label: 
+          default: "Tags"
+        Parameters: 
+          - Environment
+          - ProjectName
+          - ProjectID
+          - ResourceName
+
+
+
+Parameters:
+  VPCCIDR:
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedValues:
+      - 10.0.0.0/16 
+      - 10.0.0.0/24
+    Description : Select the value for VPC CIDR
+
+  Environment: 
+    Type: String
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Prod
+    Description: Select the Environment type
+
+  ProjectName: 
+    Type: String
+    Description: Enter the name of the Project
+
+  ProjectID: 
+    Type: String
+    Description: Enter the ID of the Project
+
+  ResourceName: 
+    Type: String
+    Description: Enter the name of the Resource
+
+
+
+Resources: 
+  #VPC 
+  VPC01:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      Tags: 
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project Name
+          Value: !Ref ProjectName
+        - Key: Project ID
+          Value: !Ref ProjectID
+        - Key: Resource Name
+          Value: !Ref ResourceName 
